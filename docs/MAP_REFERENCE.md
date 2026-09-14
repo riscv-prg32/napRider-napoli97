@@ -11,4 +11,4 @@ The 20x10 maps are gameplay abstractions rather than copied street plans:
 - Parco Virgiliano is a green headland bordered by a coastal edge and open water.
 - Napoli Sotterranea mirrors the historic-center axis as masonry corridors and chambers; it is a fictional below-ground interpretation.
 
-Every stored map byte is a semantic cell. Codes distinguish buildings, road surface, road edges, crossings, sea, seawall, park, plaza and underground wall. District-specific tile frames render those codes without changing their meaning.
+Every stored map byte is a semantic cell. Codes distinguish buildings, road surface, road edges, crossings, sea, seawall, park, plaza, underground wall and collectible puzzle fragment. Each surface map contains exactly one fragment on its roadway. District-specific tile frames render those codes without changing their meaning.

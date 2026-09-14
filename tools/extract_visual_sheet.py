@@ -64,11 +64,11 @@ def map_rgb(arr, transparent=False):
     return out.reshape(a.shape[:2])
 
 # Semantic byte maps describe a stylized 1997 Naples rather than shuffling
-# arbitrary photographic fragments. The track follows x+2y on a wrapping map,
-# which is invariant under the runtime camera's up-right isometric motion.
+# arbitrary photographic fragments. Rows form far, district and road layers;
+# the runtime scrolls each layer horizontally at a different speed.
 T=16
-C_BUILDING_A,C_BUILDING_B,C_ROAD,C_ROAD_LEFT,C_ROAD_RIGHT,C_CROSS,C_SEA,C_SEAWALL,C_PARK,C_PLAZA,C_WALL=range(11)
-CODE_COUNT=11
+C_BUILDING_A,C_BUILDING_B,C_ROAD,C_ROAD_LEFT,C_ROAD_RIGHT,C_CROSS,C_SEA,C_SEAWALL,C_PARK,C_PLAZA,C_WALL,C_PIECE=range(12)
+CODE_COUNT=12
 STAGE_COLORS=[
     ((139,91,55),(190,141,78)), ((224,201,151),(157,116,74)),
     ((174,102,56),(213,151,82)), ((150,127,97),(198,176,129)),
@@ -81,13 +81,16 @@ def semantic_tile(stage,code):
         roof=b if code==C_BUILDING_A else a; wall=a if code==C_BUILDING_A else b
         d.rectangle((0,0,15,15),fill=wall); d.polygon(((0,5),(8,0),(15,4),(7,9)),fill=roof)
         d.line((0,5,7,10,15,5),fill=(70,48,35)); d.rectangle((4,10,6,13),fill=(30,45,50)); d.rectangle((10,8,12,11),fill=(225,185,75))
-    elif code in (C_ROAD,C_CROSS):
-        d.rectangle((0,0,15,15),fill=(47,51,53)); d.line((0,15,15,0),fill=(215,190,116))
-        if code==C_CROSS: d.line((0,2,13,15),fill=(205,205,190)); d.line((3,0,15,12),fill=(205,205,190))
+    elif code in (C_ROAD,C_CROSS,C_PIECE):
+        d.rectangle((0,0,15,15),fill=(47,51,53)); d.line((2,8,10,8),fill=(215,190,116))
+        if code==C_CROSS:
+            for x in (1,5,9,13): d.rectangle((x,0,x+1,15),fill=(205,205,190))
+        if code==C_PIECE:
+            d.rectangle((5,5,11,11),fill=(247,194,45)); d.rectangle((3,7,5,9),fill=(247,194,45)); d.rectangle((7,3,9,5),fill=(247,194,45)); d.point((9,11),fill=(47,51,53))
     elif code==C_ROAD_LEFT:
-        d.polygon(((0,10),(0,15),(15,0),(10,0)),fill=(47,51,53)); d.line((0,9,9,0),fill=(220,204,164),width=2)
+        d.rectangle((0,8,15,15),fill=(47,51,53)); d.line((0,7,15,7),fill=(220,204,164),width=2)
     elif code==C_ROAD_RIGHT:
-        d.polygon(((0,15),(5,15),(15,5),(15,0)),fill=(47,51,53)); d.line((5,15,15,5),fill=(220,204,164),width=2)
+        d.rectangle((0,0,15,10),fill=(47,51,53)); d.line((0,10,15,10),fill=(220,204,164),width=2)
     elif code==C_SEA:
         d.rectangle((0,0,15,15),fill=(24,92,128))
         for y in (3,8,13): d.line((0,y,5,y-1,10,y,15,y-1),fill=(75,169,190))
@@ -107,38 +110,32 @@ maps=np.zeros((6,10,20),dtype=np.uint8)
 for stage in range(6):
     for y in range(10):
         for x in range(20):
-            u=(x+2*y)%20
             code=C_BUILDING_A if (x+y)%2 else C_BUILDING_B
-            # Centro: compact fabric around a broad decumano-like route.
-            lo,hi,cross_every=2,7,6
-            # Posillipo: a narrow hillside road beside seawall and gulf.
+            # Rows 0..2 are the far layer; 3..5 are district scenery.
             if stage==1:
-                lo,hi,cross_every=2,7,10
-                if u==9: code=C_SEAWALL
-                elif u>=10: code=C_SEA
-                elif u==0: code=C_PARK
-            # Quartieri: tight blocks and frequent cross-streets near Toledo.
+                if y<=2: code=C_SEA
+                elif y==3: code=C_SEAWALL
+                elif y==4 and x%7==0: code=C_PARK
             elif stage==2:
-                lo,hi,cross_every=2,6,4
-            # Vomero: winding high-ground route around gardens and plazas.
+                if y==4 and x%4 in (0,1): code=C_PLAZA
             elif stage==3:
-                lo,hi,cross_every=2,7,8
-                if u in (0,1,9,10) or (7<=x<=12 and 2<=y<=5):
-                    code=C_PARK if (x+y)%3 else C_PLAZA
-            # Virgiliano: park headland, coastal edge and open water.
+                if y<=2 or (y<=4 and 7<=x<=12): code=C_PARK if (x+y)%3 else C_PLAZA
             elif stage==4:
-                lo,hi,cross_every=2,6,10
-                code=C_PARK
-                if u==8: code=C_SEAWALL
-                elif u>=9: code=C_SEA
-            # Sotterranea echoes the historic-center street axis below ground.
+                code=C_SEA if y<=1 else C_PARK
+                if y==2: code=C_SEAWALL
             elif stage==5:
-                lo,hi,cross_every=2,7,6
                 code=C_WALL if (x+y)%3 else C_PLAZA
-            if u==lo-1: code=C_ROAD_LEFT
-            elif u==hi+1: code=C_ROAD_RIGHT
-            elif lo<=u<=hi: code=C_CROSS if x%cross_every in (0,1) else C_ROAD
+            # A continuous horizontal roadway occupies the foreground.
+            cross_every=(6,10,4,8,10,6)[stage]
+            if y==5: code=C_ROAD_LEFT
+            elif 6<=y<=8: code=C_CROSS if x%cross_every in (0,1) else C_ROAD
+            elif y==9: code=C_ROAD_RIGHT
             maps[stage,y,x]=code
+
+# One persistent puzzle fragment is encoded directly in each surface map.
+# All positions lie on the invariant main route and are unique per district.
+piece_columns=(14,4,17,8,12)
+for stage,x in enumerate(piece_columns): maps[stage,7,x]=C_PIECE
 
 tile_pix=np.concatenate([map_rgb(semantic_tile(stage,code),False).reshape(-1)
                          for stage in range(6) for code in range(CODE_COUNT)]).astype(np.uint8)
@@ -216,6 +213,7 @@ with HDR.open('w') as f:
     f.write('#ifndef NAPRIDER_ASSETS8_H\n#define NAPRIDER_ASSETS8_H\n#include <stdint.h>\n')
     f.write(f'#define NR_PALETTE_COUNT {len(colors)}\n#define NR_TILE_COUNT {K}\n')
     f.write(f'#define NR_MAP_CODE_COUNT {CODE_COUNT}\n')
+    f.write(f'#define NR_MAP_ROAD_CODE {C_ROAD}\n#define NR_MAP_PIECE_CODE {C_PIECE}\n')
     f.write('#define NR_TILE_W 16\n#define NR_TILE_H 16\n#define NR_STAGE_W 20\n#define NR_STAGE_H 10\n')
     f.write('#define NR_CAR_W 48\n#define NR_CAR_H 40\n#define NR_CAR_FRAMES 8\n')
     f.write('#define NR_SCOOT_W 24\n#define NR_SCOOT_H 32\n#define NR_SCOOT_FRAMES 8\n')

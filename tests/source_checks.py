@@ -10,6 +10,13 @@ if missing: raise SystemExit('missing: '+', '.join(missing))
 for banned in ['TESORO RECUPERATO','San Gennaro','vesuvio_init','development-c6']:
     if banned in g: raise SystemExit('obsolete gameplay/source token: '+banned)
 mt=re.search(r'#define NR_TILE_COUNT (\d+)',a); assert mt
+piece=re.search(r'#define NR_MAP_PIECE_CODE (\d+)',a); assert piece
+mm=re.search(r'static const uint8_t nr_stage_maps\[1200\] = \{(.*?)\};',a,re.S); assert mm
+values=[int(x) for x in re.findall(r'\d+',mm.group(1))]
+for stage in range(5):
+    if values[stage*200:(stage+1)*200].count(int(piece.group(1)))!=1:
+        raise SystemExit(f'stage {stage} must contain exactly one puzzle piece')
+if int(piece.group(1)) in values[1000:]: raise SystemExit('final stage must not contain a puzzle piece')
 assets=(int(mt.group(1))*16*16)+(8*48*40)+(8*24*32)+(40*56)+(6*20*10)+128*2
 if assets>56000: raise SystemExit(f'indexed assets too large: {assets}')
 if not (r/'assets/source/naprider_visual_sheet.png').exists(): raise SystemExit('source visual sheet missing')

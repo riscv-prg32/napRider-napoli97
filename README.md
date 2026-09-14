@@ -1,12 +1,12 @@
 # napRider-napoli97
 
-**napRider-napoli97** is an unofficial PRG32 isometric arcade adventure set in Naples in 1997. The joke in the title is intentional: `nap` is Napoli, and the project playfully echoes the talking-car action genre without using official Knight Rider names, characters, logos, dialogue, music, or artwork.
+**napRider-napoli97** is an unofficial PRG32 horizontal parallax arcade adventure set in Naples in 1997. The joke in the title is intentional: `nap` is Napoli, and the project playfully echoes the talking-car action genre without using official Knight Rider names, characters, logos, dialogue, music, or artwork.
 
 ![Runtime-asset preview](assets/generated/screenshot.png)
 
 ## Premise
 
-The San Gennaro treasure plot has been removed. The new story is mythological: the player follows a chain of fictional **Virgilian signs** across Naples, pursued and obstructed by scooter gangs, until the route descends into **Napoli Sotterranea**. The final playable scene reaches the legendary **Egg of Virgil**, where the player can take it or leave it in place.
+The San Gennaro treasure plot has been removed. The new story is mythological: the player collects five fictional **Virgilian puzzle fragments** encoded in the district maps while scooter gangs pursue and obstruct the route. Completing the mosaic opens **Napoli Sotterranea**. The final playable scene reaches the legendary **Egg of Virgil**, where the player can take it or leave it in place.
 
 The story deliberately mixes real places and a historical legend with fictional game events; it is not a claim about the actual archaeology of Naples.
 
@@ -23,9 +23,9 @@ The car keeps the four signature phrases requested for the saga:
 
 ## Gameplay
 
-The game uses the isometric scrolling direction established in the visual sheet. Surface stages are Centro Storico, Posillipo, Quartieri Spagnoli, Vomero and Parco Virgiliano; the sixth and final stage is Napoli Sotterranea.
+The game uses horizontal scrolling with three parallax speeds for distant scenery, district scenery and road surface. Surface stages are Centro Storico, Posillipo, Quartieri Spagnoli, Vomero and Parco Virgiliano; collecting their five fragments unlocks the sixth and final stage, Napoli Sotterranea.
 
-Manual drive gives direct steering, acceleration/braking, turbo and handbrake slides. `B` toggles self-drive. In AUTO the car steers toward the route while the player selects and deploys the arcade gadgets **rauti**, **grasso** and **chiodi** against pursuing scooter gangs. These are intentionally abstract game mechanics, not real-world instructions.
+Manual drive uses up/down for lane changes, left/right for braking and acceleration, plus turbo and handbrake slides. `B` toggles self-drive. In AUTO the car steers toward the route while the player selects and deploys the arcade gadgets **rauti**, **grasso** and **chiodi** against pursuing scooter gangs. These are intentionally abstract game mechanics, not real-world instructions.
 
 ## 8-bit graphics and tile strategy
 
@@ -39,7 +39,7 @@ The approved visual sheet is included at `assets/source/naprider_visual_sheet.pn
 - an indexed Virgil's Egg sprite;
 - Store icon and artwork.
 
-The runtime uses `prg32_indexed_sprite_t` with `bits_per_pixel = 8` and `prg32_sprite_draw_indexed()`. Each byte-coded map distinguishes roads, crossings, buildings, sea, seawalls, parks, plazas and underground masonry, with district-specific tiles. Current indexed graphics payload is about **42 KiB before code/audio**, leaving room inside the 128 KiB cartridge package and optional 128 KiB ESP32-C6 cartridge-RAM profile.
+The runtime uses `prg32_indexed_sprite_t` with `bits_per_pixel = 8` and `prg32_sprite_draw_indexed()`. Each byte-coded map distinguishes roads, crossings, buildings, sea, seawalls, parks, plazas, underground masonry and collectible fragments, with district-specific tiles. Current indexed graphics payload is about **43 KiB before code/audio**, leaving room inside the 128 KiB cartridge package and optional 128 KiB ESP32-C6 cartridge-RAM profile.
 
 A deterministic contact sheet reconstructed from the actual tile bank is available at `assets/generated/runtime_stages_contact.png`.
 

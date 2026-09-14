@@ -2,9 +2,9 @@
 
 The single artistic source of truth is `assets/source/naprider_visual_sheet.png`.
 
-`tools/extract_visual_sheet.py` performs deterministic crops, builds a 128-color shared palette, and converts car, scooter, Egg and map graphics to 8-bpp indices. The six maps are authored as byte-coded semantic cells: buildings, roads, road edges, crossings, sea, seawall, park, plaza and underground walls. A stage-specific lookup gives those cells a district palette while retaining a small 66-tile bank. This prevents unrelated image fragments from being assembled into impossible streets.
+`tools/extract_visual_sheet.py` performs deterministic crops, builds a 128-color shared palette, and converts car, scooter, Egg and map graphics to 8-bpp indices. The six maps are authored as byte-coded semantic cells: buildings, roads, road edges, crossings, sea, seawall, park, plaza, underground walls and puzzle fragments. A stage-specific lookup gives those cells a district palette while retaining a small 72-tile bank. This prevents unrelated image fragments from being assembled into impossible streets.
 
-Runtime scrolling derives tile selection and sub-tile offset from the same pixel coordinates. This keeps every tile boundary continuous during diagonal motion.
+Map rows form far, district and road layers. Each layer derives tile selection and sub-tile offset from one horizontal coordinate at its own parallax speed, keeping tile boundaries continuous.
 
 The geographic reasoning behind each authored layout is documented in [MAP_REFERENCE.md](MAP_REFERENCE.md).
 

@@ -33,7 +33,7 @@ static shot_t shots[MAX_SHOTS];
 static uint32_t last_input, frame_no, rng_state=0x4E415039u;
 static int stage, stage_progress, lane, speed, score, fuel, battery, turbo;
 static int8_t steer;
-static uint8_t auto_mode, lights, handbrake, gadget, sigils, egg_taken, checkpoint_used;
+static uint8_t auto_mode, lights, handbrake, gadget, pieces, piece_mask, egg_taken, checkpoint_used;
 static game_state_t state;
 static char message[36];
 static uint8_t message_timer;
@@ -66,13 +66,13 @@ static void setup_sprites(void){
 
 static void spawn_scooter(int i){
     scooters[i].rel=(int16_t)(150+(int)(rnd()%800)); scooters[i].lane=(int8_t)(-38+(int)(rnd()%77));
-    scooters[i].frame=0; scooters[i].active=1; scooters[i].stun=0;
+    scooters[i].frame=6; scooters[i].active=1; scooters[i].stun=0;
 }
 static int nearest_scooter(void){int i,b=-1,bd=32767;for(i=0;i<MAX_SCOOTERS;i++)if(scooters[i].active){int d=absi(scooters[i].rel)+absi(scooters[i].lane-lane)*3;if(d<bd){bd=d;b=i;}}return b;}
 
 static void reset_run(void){
     int i; stage=0;stage_progress=0;lane=0;speed=4;score=0;fuel=1000;battery=1000;turbo=100;
-    steer=0;auto_mode=0;lights=1;handbrake=0;gadget=0;sigils=0;egg_taken=0;checkpoint_used=0;state=GS_PLAY;
+    steer=0;auto_mode=0;lights=1;handbrake=0;gadget=0;pieces=0;piece_mask=0;egg_taken=0;checkpoint_used=0;state=GS_PLAY;
     for(i=0;i<MAX_SCOOTERS;i++) spawn_scooter(i);
     for(i=0;i<MAX_SHOTS;i++) shots[i].life=0;
     say("vai cuonc cuonc");
@@ -91,9 +91,25 @@ void naprider_init(void){
 
 static void complete_stage(void){
     if(stage<SURFACE_STAGES){
-        sigils++;score+=1500;stage++;stage_progress=0;lane=0;checkpoint_used=0;
-        if(stage==5) say("IL VARCO E SOTTO NAPOLI"); else say("UN SEGNO DI VIRGILIO");
+        if((piece_mask&(1u<<stage))==0){stage_progress=0;lane=0;say("TROVA IL FRAMMENTO");return;}
+        score+=1500;stage++;stage_progress=0;lane=0;checkpoint_used=0;
+        if(stage==5) say("MOSAICO COMPLETO: VARCO APERTO"); else say("ROTTA RICOMPOSTA");
     } else { state=GS_EGG_CHOICE; say("L'UOVO DI VIRGILIO"); }
+}
+
+static int track_scroll(void){return (stage_progress>>2)%(NR_STAGE_W*16);}
+static uint8_t player_map_code(void){
+    int mx=((96+track_scroll())>>4)%NR_STAGE_W;
+    int py=128+(lane/2)-TOP,my=py>>4;
+    if(my<0)my=0;if(my>=NR_STAGE_H)my=NR_STAGE_H-1;
+    return nr_stage_maps[stage*NR_STAGE_W*NR_STAGE_H+my*NR_STAGE_W+mx];
+}
+static void collect_piece(uint8_t code){
+    uint8_t bit=(uint8_t)(1u<<stage);
+    if(stage<SURFACE_STAGES&&code==NR_MAP_PIECE_CODE&&(piece_mask&bit)==0){
+        piece_mask|=bit;pieces++;score+=750;say("FRAMMENTO DI VIRGILIO");
+        prg32_audio_note_on_pan(6,3,84,240,0);
+    }
 }
 
 static void update_play(uint32_t in,uint32_t pressed){
@@ -109,17 +125,17 @@ static void update_play(uint32_t in,uint32_t pressed){
         if(stage<5&&t>=0){if(lane<scooters[t].lane-2){lane+=2;steer=1;}else if(lane>scooters[t].lane+2){lane-=2;steer=-1;}}else{if(lane<0){lane++;steer=1;}else if(lane>0){lane--;steer=-1;}}
         if(speed<5)speed=5;
     }else{
-        if(in&PRG32_BTN_LEFT){lane-=2;steer=-1;}
-        if(in&PRG32_BTN_RIGHT){lane+=2;steer=1;}
-        if(in&PRG32_BTN_UP){if(speed<7)speed++;}else if(speed>3&&(frame_no%8)==0)speed--;
-        if(in&PRG32_BTN_DOWN&&speed>1)speed--;
+        if(in&PRG32_BTN_UP){lane-=2;steer=-1;}
+        if(in&PRG32_BTN_DOWN){lane+=2;steer=1;}
+        if(in&PRG32_BTN_RIGHT){if(speed<7)speed++;}else if(speed>3&&(frame_no%8)==0)speed--;
+        if(in&PRG32_BTN_LEFT&&speed>1)speed--;
         if((pressed&PRG32_BTN_A)&&turbo>=15){speed+=2;if(speed>9)speed=9;turbo-=15;score+=15;prg32_audio_note_on_pan(4,4,69,230,-20);}
     }
     if(lane<-44) lane=-44;
     if(lane>44) lane=44;
-    if(handbrake){if(speed>2&&(frame_no%3)==0)speed--;if(in&PRG32_BTN_LEFT){lane-=2;steer=-1;}
-        if(in&PRG32_BTN_RIGHT){lane+=2;steer=1;}
-        if((in&PRG32_BTN_UP)&&(frame_no%75)==0) say("ah il freno a mano");
+    if(handbrake){if(speed>2&&(frame_no%3)==0)speed--;if(in&PRG32_BTN_UP){lane-=2;steer=-1;}
+        if(in&PRG32_BTN_DOWN){lane+=2;steer=1;}
+        if((in&PRG32_BTN_RIGHT)&&(frame_no%75)==0) say("ah il freno a mano");
     }
     if(lane<-44) lane=-44;
     if(lane>44) lane=44;
@@ -130,11 +146,12 @@ static void update_play(uint32_t in,uint32_t pressed){
     if(turbo<100&&(frame_no%18)==0)turbo++;
     /* Mythic route checkpoints double as petrol stops to keep exploration moving. */
     if(!checkpoint_used&&stage_progress>540&&stage_progress<575&&absi(lane+34)<14){fuel=1000;score+=25;checkpoint_used=1;}
+    collect_piece(player_map_code());
 
     if(stage<5){
         for(i=0;i<MAX_SCOOTERS;i++)if(scooters[i].active){
             if(scooters[i].stun){scooters[i].stun--;continue;}
-            scooters[i].rel-=(int16_t)(speed-2);if((frame_no+i*11)%70==0){int turn=(int)(rnd()%3)-1;scooters[i].lane+=(int8_t)(turn*7);scooters[i].frame=(uint8_t)(turn<0?6:turn>0?2:0);}else if((frame_no+i*7)%24==0)scooters[i].frame=0;
+            scooters[i].rel-=(int16_t)(speed-2);if((frame_no+i*11)%70==0){int turn=(int)(rnd()%3)-1;scooters[i].lane+=(int8_t)(turn*7);scooters[i].frame=(uint8_t)(turn<0?7:turn>0?5:6);}else if((frame_no+i*7)%24==0)scooters[i].frame=6;
             if(scooters[i].lane<-42) scooters[i].lane=-42;
             if(scooters[i].lane>42) scooters[i].lane=42;
             if(scooters[i].rel<-120)spawn_scooter(i);
@@ -157,25 +174,26 @@ void naprider_update(void){
 }
 
 static void draw_stage_tiles(void){
-    int sx,sy;int scroll_x=(stage_progress>>2)%(NR_STAGE_W*16);
-    int scroll_y=(NR_STAGE_H*16-((stage_progress>>3)%(NR_STAGE_H*16)))%(NR_STAGE_H*16);
-    int tile_dx=(scroll_x>>4)%NR_STAGE_W,tile_dy=(scroll_y>>4)%NR_STAGE_H;
-    int px=-(scroll_x&15),py=-(scroll_y&15);
-    for(sy=0;sy<11;sy++)for(sx=0;sx<21;sx++){
-        int mx=(sx+tile_dx)%NR_STAGE_W,my=(sy+tile_dy)%NR_STAGE_H;
+    int sx,sy;
+    for(sy=0;sy<NR_STAGE_H;sy++){
+        int scroll_x=sy<3?(stage_progress>>5):sy<6?(stage_progress>>4):track_scroll();
+        int tile_dx=(scroll_x>>4)%NR_STAGE_W,px=-(scroll_x&15);
+        for(sx=0;sx<21;sx++){
+        int mx=(sx+tile_dx)%NR_STAGE_W,my=sy;
         int code=nr_stage_maps[stage*NR_STAGE_W*NR_STAGE_H+my*NR_STAGE_W+mx];
+        if(code==NR_MAP_PIECE_CODE&&(piece_mask&(1u<<stage)))code=NR_MAP_ROAD_CODE;
         int frame=stage*NR_MAP_CODE_COUNT+code;
-        prg32_sprite_draw_indexed(px+sx*16,TOP+py+sy*16,&tile_sprite,frame);
-    }
+        prg32_sprite_draw_indexed(px+sx*16,TOP+sy*16,&tile_sprite,frame);
+    }}
 }
 
-static void project_entity(int rel,int ln,int *x,int *y){*x=160+(ln/2)+(rel/5);*y=128-(rel/7)+(ln/8);}
+static void project_entity(int rel,int ln,int *x,int *y){*x=96+(rel/3);*y=128+(ln/2);}
 static int car_frame(void){
-    if(handbrake&&steer<0)return 7;
-    if(handbrake&&steer>0)return 1;
-    if(steer<0) return 6;
-    if(steer>0) return 2;
-    return 0;
+    if(handbrake&&steer<0)return 0;
+    if(handbrake&&steer>0)return 4;
+    if(steer<0) return 7;
+    if(steer>0) return 5;
+    return 6;
 }
 
 static void draw_entities(void){
@@ -194,7 +212,7 @@ static void draw_hud(void){
     prg32_gfx_text8(110,5,"F",C_GOLD,C_BLACK);draw_bar(122,5,fuel,1000,C_GREEN);
     prg32_gfx_text8(166,5,"B",C_CYAN,C_BLACK);draw_bar(178,5,battery,1000,C_CYAN);
     prg32_gfx_text8(222,5,lights?"L+":"L-",lights?C_GOLD:C_GRAY,C_BLACK);
-    s[0]=(char)('0'+sigils);prg32_gfx_text8(248,5,"SEGNI",C_GOLD,C_BLACK);prg32_gfx_text8(295,5,s,C_WHITE,C_BLACK);
+    s[0]=(char)('0'+pieces);prg32_gfx_text8(248,5,"PZ",C_GOLD,C_BLACK);prg32_gfx_text8(270,5,s,C_WHITE,C_BLACK);prg32_gfx_text8(279,5,"/5",C_GRAY,C_BLACK);
     prg32_gfx_rect(0,BOTTOM,W,H-BOTTOM,C_BLACK);prg32_gfx_text8(4,184,auto_mode?"AUTO":"MAN",auto_mode?C_GREEN:C_WHITE,C_BLACK);
     prg32_gfx_text8(43,184,gadget==0?"RAUTI":gadget==1?"GRASSO":"CHIODI",C_GOLD,C_BLACK);prg32_gfx_text8(110,184,"T",C_WHITE,C_BLACK);draw_bar(122,184,turbo,100,C_RED);
     prg32_gfx_text8(170,184,stage_name(),C_WHITE,C_BLACK);

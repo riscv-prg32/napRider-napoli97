@@ -14,8 +14,8 @@
   ],
   "content_notice": "Unofficial tribute game. napRider is a playful name; the project is not affiliated with Knight Rider, Fiat/Stellantis, municipal institutions, or custodians of Naples cultural sites.",
   "controls": [
-    {"input":"LEFT/RIGHT","action":"Steer; in AUTO select gadget"},
-    {"input":"UP/DOWN","action":"Accelerate / brake"},
+    {"input":"UP/DOWN","action":"Change road lane"},
+    {"input":"LEFT/RIGHT","action":"Brake / accelerate; in AUTO select gadget"},
     {"input":"A","action":"Turbo in MANUAL; deploy gadget in AUTO; choose ending"},
     {"input":"B","action":"Toggle self-drive; choose alternate ending"},
     {"input":"SELECT","action":"Toggle handbrake / slide"},

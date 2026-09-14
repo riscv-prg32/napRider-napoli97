@@ -2,14 +2,14 @@
 
 ## Campaign
 
-1. **Centro Storico** — first Virgilian sign; traffic and scooter tutorial.
+1. **Centro Storico** — first puzzle fragment; traffic and scooter tutorial.
 2. **Posillipo** — faster coastal road and heavier traffic.
 3. **Quartieri Spagnoli** — tighter visual corridor and aggressive scooter pressure.
 4. **Vomero / Galleria** — tunnel atmosphere, headlights and battery become important.
 5. **Parco Virgiliano** — myth clue reveals a route beneath the city.
 6. **Napoli Sotterranea** — underground dungeon-like finale; reach the Egg of Virgil and choose whether to take it or leave it.
 
-Each surface stage awards one fictional `SEGNO DI VIRGILIO`. These signs are game inventions used to structure the adventure, not historical artifacts.
+Each surface map stores one collectible fragment as a semantic byte cell. The player must drive over the fragment before leaving that district; otherwise the route loops. Five fragments reconstruct the Virgilian mosaic that opens Napoli Sotterranea. These pieces are game inventions, not historical artifacts.
 
 ## Car systems
 
@@ -17,7 +17,7 @@ Fuel, battery, lights, handbrake, manual/self-drive, turbo and the four car phra
 
 ## Track motion
 
-Forward distance defines one isometric track axis for background scrolling and entity projection. The scenery moves down-left as vehicles advance up-right. Lateral input moves the Fiat across that axis, and its sprite heading reflects the current steering direction rather than its accumulated lane position. Scooters use the same projection and briefly turn their sprite when changing lanes.
+Forward distance defines a horizontal track axis shared by the road, Fiat, scooters, projectiles and collectible collision. Map rows form three parallax bands: distant scenery moves at one eighth road speed, district scenery at one quarter, and the road at full camera speed. Up/down input changes road lane; right/left accelerates or brakes. Vehicle sprite headings reflect current lane movement rather than accumulated position.
 
 ## Tone
 

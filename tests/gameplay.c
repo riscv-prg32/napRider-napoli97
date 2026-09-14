@@ -26,14 +26,20 @@ int main(void)
 
     stage_progress=STAGE_LENGTH-1;
     update_play(0,0);
+    assert(stage==0 && stage_progress==0);
+    collect_piece(NR_MAP_PIECE_CODE);
+    collect_piece(NR_MAP_PIECE_CODE);
+    assert(pieces==1 && piece_mask==1);
+    stage_progress=STAGE_LENGTH-1;
+    update_play(0,0);
     assert(stage==1 && !checkpoint_used);
 
     handbrake=1; lane=44; speed=1;
-    update_play(PRG32_BTN_RIGHT,0);
+    update_play(PRG32_BTN_DOWN,0);
     assert(lane==44);
-    assert(steer==1 && car_frame()==1);
+    assert(steer==1 && car_frame()==4);
     handbrake=0;
     update_play(0,0);
-    assert(steer==0 && car_frame()==0);
+    assert(steer==0 && car_frame()==6);
     return 0;
 }
