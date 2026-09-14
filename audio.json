@@ -1,0 +1,313 @@
+{
+  "instruments": [
+    {
+      "sample_id": 34658,
+      "default_volume": 205,
+      "default_pan": -26,
+      "attack": 2,
+      "decay": 28,
+      "sustain": 145,
+      "release": 36
+    },
+    {
+      "sample_id": 35370,
+      "default_volume": 175,
+      "default_pan": 26,
+      "attack": 0,
+      "decay": 18,
+      "sustain": 110,
+      "release": 28
+    },
+    {
+      "sample_id": 34208,
+      "default_volume": 220,
+      "default_pan": 0,
+      "attack": 1,
+      "decay": 34,
+      "sustain": 170,
+      "release": 42
+    },
+    {
+      "sample_id": 36099,
+      "default_volume": 90,
+      "default_pan": 0,
+      "attack": 0,
+      "decay": 6,
+      "sustain": 0,
+      "release": 8
+    },
+    {
+      "sample_id": 34659,
+      "default_volume": 245,
+      "default_pan": -22,
+      "attack": 0,
+      "decay": 18,
+      "sustain": 190,
+      "release": 26
+    },
+    {
+      "sample_id": 34211,
+      "default_volume": 210,
+      "default_pan": 28,
+      "attack": 0,
+      "decay": 12,
+      "sustain": 80,
+      "release": 18
+    },
+    {
+      "sample_id": 36099,
+      "default_volume": 235,
+      "default_pan": 0,
+      "attack": 0,
+      "decay": 10,
+      "sustain": 0,
+      "release": 16
+    },
+    {
+      "sample_id": 35369,
+      "default_volume": 185,
+      "default_pan": 18,
+      "attack": 0,
+      "decay": 22,
+      "sustain": 120,
+      "release": 28
+    }
+  ],
+  "tracks": [
+    {
+      "events": [
+        {
+          "delta": 0,
+          "command": "SET_TEMPO",
+          "arg0": 126
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 2,
+          "arg1": 40
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 0,
+          "arg1": 64
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 0
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 1,
+          "arg1": 71
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 1
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 0,
+          "arg1": 67
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 0
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 1,
+          "arg1": 74
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 1
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_OFF",
+          "arg0": 2
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 2,
+          "arg1": 43
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 0,
+          "arg1": 62
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 0
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 1,
+          "arg1": 69
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 1
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 0,
+          "arg1": 66
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 0
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 1,
+          "arg1": 72
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 1
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_OFF",
+          "arg0": 2
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 2,
+          "arg1": 45
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 0,
+          "arg1": 64
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 0
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 1,
+          "arg1": 71
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 1
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 0,
+          "arg1": 69
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 0
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 1,
+          "arg1": 76
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 1
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_OFF",
+          "arg0": 2
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 2,
+          "arg1": 38
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 0,
+          "arg1": 62
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 0
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 1,
+          "arg1": 67
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 1
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 0,
+          "arg1": 65
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 0
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_ON",
+          "arg0": 1,
+          "arg1": 71
+        },
+        {
+          "delta": 3,
+          "command": "NOTE_OFF",
+          "arg0": 1
+        },
+        {
+          "delta": 0,
+          "command": "NOTE_OFF",
+          "arg0": 2
+        },
+        {
+          "delta": 0,
+          "command": "JUMP",
+          "arg0": 1,
+          "arg1": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "abi": "prg32-colophon-1.0",
+  "title": "napRider-napoli97",
+  "subtitle": "Tra mito, storia e asfalto",
+  "version": "1.0.0",
+  "release_date": "2026-09-13",
+  "developer": {"name":"napRider-napoli97 contributors"},
+  "authors": [],
+  "license": "MIT",
+  "acknowledgements": [
+    "Built for riscv-prg32/PRG32 main portable ABI",
+    "Naples 1997 setting and Virgil's Egg legend are used as inspiration for a fictional story",
+    "Original SID-like soundtrack; no television soundtrack melody or recording is included"
+  ],
+  "content_notice": "Unofficial tribute game. napRider is a playful name; the project is not affiliated with Knight Rider, Fiat/Stellantis, municipal institutions, or custodians of Naples cultural sites.",
+  "controls": [
+    {"input":"LEFT/RIGHT","action":"Steer; in AUTO select gadget"},
+    {"input":"UP/DOWN","action":"Accelerate / brake"},
+    {"input":"A","action":"Turbo in MANUAL; deploy gadget in AUTO; choose ending"},
+    {"input":"B","action":"Toggle self-drive; choose alternate ending"},
+    {"input":"SELECT","action":"Toggle handbrake / slide"},
+    {"input":"SELECT+B","action":"Toggle headlights"}
+  ]
+}

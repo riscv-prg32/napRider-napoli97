@@ -1,4 +1,7 @@
 # Prerequisites
+build/
+dist/
+__pycache__/
 *.d
 
 # Object files
