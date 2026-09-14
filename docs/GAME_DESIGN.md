@@ -15,6 +15,10 @@ Each surface stage awards one fictional `SEGNO DI VIRGILIO`. These signs are gam
 
 Fuel, battery, lights, handbrake, manual/self-drive, turbo and the four car phrases are persistent systems. Petrol points exist to make route planning matter. AUTO lets the player hand steering to the car and focus on arcade gadgets.
 
+## Track motion
+
+Forward distance defines one isometric track axis for background scrolling and entity projection. The scenery moves down-left as vehicles advance up-right. Lateral input moves the Fiat across that axis, and its sprite heading reflects the current steering direction rather than its accumulated lane position. Scooters use the same projection and briefly turn their sprite when changing lanes.
+
 ## Tone
 
 The atmosphere is affectionate, comic and mythological rather than violent. Scooter opponents are fictional arcade gangs. Gadgets cause temporary game-state disruption only.

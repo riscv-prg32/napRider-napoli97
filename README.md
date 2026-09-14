@@ -32,14 +32,14 @@ Manual drive gives direct steering, acceleration/braking, turbo and handbrake sl
 The approved visual sheet is included at `assets/source/naprider_visual_sheet.png` and is the actual source of the shipped graphics. `tools/extract_visual_sheet.py` derives:
 
 - a shared 128-entry RGB565 palette;
-- **96 reusable 16x16, 8-bpp indexed tiles**;
+- **66 reusable 16x16, 8-bpp indexed semantic tiles**;
 - six 20x10 stage tilemaps;
 - eight 48x40 pseudo-3D Fiat 500 L frames;
 - eight 24x32 scooter frames;
 - an indexed Virgil's Egg sprite;
 - Store icon and artwork.
 
-The runtime uses `prg32_indexed_sprite_t` with `bits_per_pixel = 8` and `prg32_sprite_draw_indexed()`. The scene bank is aggressively tile-reused instead of embedding full 320x160 bitmaps. Current indexed graphics payload is about **72 KiB before code/audio**, leaving room inside the 128 KiB cartridge package and optional 128 KiB ESP32-C6 cartridge-RAM profile.
+The runtime uses `prg32_indexed_sprite_t` with `bits_per_pixel = 8` and `prg32_sprite_draw_indexed()`. Each byte-coded map distinguishes roads, crossings, buildings, sea, seawalls, parks, plazas and underground masonry, with district-specific tiles. Current indexed graphics payload is about **42 KiB before code/audio**, leaving room inside the 128 KiB cartridge package and optional 128 KiB ESP32-C6 cartridge-RAM profile.
 
 A deterministic contact sheet reconstructed from the actual tile bank is available at `assets/generated/runtime_stages_contact.png`.
 

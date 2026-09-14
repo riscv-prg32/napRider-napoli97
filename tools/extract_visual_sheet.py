@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 import numpy as np
-from PIL import Image
-from sklearn.cluster import MiniBatchKMeans
+from PIL import Image,ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / 'assets/source/naprider_visual_sheet.png'
@@ -51,53 +50,99 @@ def map_rgb(arr, transparent=False):
         d=((q[:,None,:]-c32[None,:,:])**2).sum(axis=2)
         out[i:i+len(q)]=d.argmin(axis=1).astype(np.uint8)+start
     if transparent:
-        # panel backgrounds are nearly black/navy; only make very dark pixels transparent
+        # Remove dark panel pixels and colors connected to the crop border.
+        # This suppresses the blue/brown scene residue around vehicle silhouettes.
         lum=flat.sum(axis=1)
         dark=(lum<55) & (flat.max(axis=1)<35)
-        out[dark]=0
+        border=np.concatenate((a[0],a[-1],a[:,0],a[:,-1])).astype(np.int32)
+        border=np.unique((border//16)*16,axis=0)
+        near_border=np.zeros(len(flat),dtype=bool)
+        for i in range(0,len(flat),4096):
+            q=flat[i:i+4096].astype(np.int32)
+            near_border[i:i+len(q)]=(((q[:,None,:]-border[None,:,:])**2).sum(axis=2).min(axis=1)<18**2)
+        out[dark|near_border]=0
     return out.reshape(a.shape[:2])
 
-# Build 16x16 tile bank by clustering all approved gameplay scenes. Each stage
-# remains a 20x10 map; up to 160 representative tiles preserve detail while
-# fitting comfortably in the 128 KiB cartridge package/RAM budget.
+# Semantic byte maps describe a stylized 1997 Naples rather than shuffling
+# arbitrary photographic fragments. The track follows x+2y on a wrapping map,
+# which is invariant under the runtime camera's up-right isometric motion.
 T=16
-raw_tiles=[]; features=[]; owners=[]
-for si,sc in enumerate(scene_imgs):
-    ar=np.asarray(sc,dtype=np.uint8)
-    for ty in range(10):
-        for tx in range(20):
-            tile=ar[ty*T:(ty+1)*T,tx*T:(tx+1)*T,:]
-            raw_tiles.append(tile)
-            # 4x4 RGB block means => compact perceptual feature
-            f=tile.reshape(4,4,4,4,3).mean(axis=(1,3)).reshape(-1)
-            features.append(f); owners.append((si,ty,tx))
-features=np.asarray(features,dtype=np.float32)
-K=min(96,len(features))
-km=MiniBatchKMeans(n_clusters=K,random_state=1997,batch_size=256,n_init=3,max_iter=200)
-labels=km.fit_predict(features)
-# medoid-like representative: actual tile nearest each centroid
-reps=[]
-for k in range(K):
-    idx=np.flatnonzero(labels==k)
-    if len(idx)==0: reps.append(np.zeros((T,T,3),dtype=np.uint8)); continue
-    d=((features[idx]-km.cluster_centers_[k])**2).sum(axis=1)
-    reps.append(raw_tiles[int(idx[int(d.argmin())])])
+C_BUILDING_A,C_BUILDING_B,C_ROAD,C_ROAD_LEFT,C_ROAD_RIGHT,C_CROSS,C_SEA,C_SEAWALL,C_PARK,C_PLAZA,C_WALL=range(11)
+CODE_COUNT=11
+STAGE_COLORS=[
+    ((139,91,55),(190,141,78)), ((224,201,151),(157,116,74)),
+    ((174,102,56),(213,151,82)), ((150,127,97),(198,176,129)),
+    ((178,142,88),(213,184,119)), ((77,62,49),(125,91,54)),
+]
 
-# Reorder clusters by first appearance for locality and deterministic maps.
-first={k:len(labels)+1 for k in range(K)}
-for i,k in enumerate(labels):
-    if i<first[int(k)]: first[int(k)]=i
-order=sorted(range(K), key=lambda k:first[k]); remap={old:new for new,old in enumerate(order)}
-reps=[reps[k] for k in order]
-labels=np.array([remap[int(k)] for k in labels],dtype=np.uint8)
+def semantic_tile(stage,code):
+    a,b=STAGE_COLORS[stage]; im=Image.new('RGB',(T,T),a); d=ImageDraw.Draw(im)
+    if code in (C_BUILDING_A,C_BUILDING_B):
+        roof=b if code==C_BUILDING_A else a; wall=a if code==C_BUILDING_A else b
+        d.rectangle((0,0,15,15),fill=wall); d.polygon(((0,5),(8,0),(15,4),(7,9)),fill=roof)
+        d.line((0,5,7,10,15,5),fill=(70,48,35)); d.rectangle((4,10,6,13),fill=(30,45,50)); d.rectangle((10,8,12,11),fill=(225,185,75))
+    elif code in (C_ROAD,C_CROSS):
+        d.rectangle((0,0,15,15),fill=(47,51,53)); d.line((0,15,15,0),fill=(215,190,116))
+        if code==C_CROSS: d.line((0,2,13,15),fill=(205,205,190)); d.line((3,0,15,12),fill=(205,205,190))
+    elif code==C_ROAD_LEFT:
+        d.polygon(((0,10),(0,15),(15,0),(10,0)),fill=(47,51,53)); d.line((0,9,9,0),fill=(220,204,164),width=2)
+    elif code==C_ROAD_RIGHT:
+        d.polygon(((0,15),(5,15),(15,5),(15,0)),fill=(47,51,53)); d.line((5,15,15,5),fill=(220,204,164),width=2)
+    elif code==C_SEA:
+        d.rectangle((0,0,15,15),fill=(24,92,128))
+        for y in (3,8,13): d.line((0,y,5,y-1,10,y,15,y-1),fill=(75,169,190))
+    elif code==C_SEAWALL:
+        d.rectangle((0,0,15,7),fill=(24,92,128)); d.rectangle((0,8,15,15),fill=(174,155,119)); d.line((0,8,15,8),fill=(235,220,180),width=2)
+    elif code==C_PARK:
+        d.rectangle((0,0,15,15),fill=(44,93,55)); d.ellipse((1,1,9,10),fill=(28,119,63)); d.ellipse((8,4,15,14),fill=(60,135,67)); d.line((0,15,15,0),fill=(188,157,104),width=2)
+    elif code==C_PLAZA:
+        d.rectangle((0,0,15,15),fill=(177,155,118))
+        for q in range(0,16,4): d.line((q,0,q,15),fill=(130,111,87)); d.line((0,q,15,q),fill=(130,111,87))
+    else:
+        d.rectangle((0,0,15,15),fill=(58,48,42))
+        for y in range(0,16,4): d.line((0,y,15,y),fill=(112,80,52)); d.line(((y//4%2)*4,y,(y//4%2)*4,y+3),fill=(112,80,52))
+    return im
 
 maps=np.zeros((6,10,20),dtype=np.uint8)
-for lab,(si,ty,tx) in zip(labels,owners): maps[si,ty,tx]=lab
+for stage in range(6):
+    for y in range(10):
+        for x in range(20):
+            u=(x+2*y)%20
+            code=C_BUILDING_A if (x+y)%2 else C_BUILDING_B
+            # Centro: compact fabric around a broad decumano-like route.
+            lo,hi,cross_every=2,7,6
+            # Posillipo: a narrow hillside road beside seawall and gulf.
+            if stage==1:
+                lo,hi,cross_every=2,7,10
+                if u==9: code=C_SEAWALL
+                elif u>=10: code=C_SEA
+                elif u==0: code=C_PARK
+            # Quartieri: tight blocks and frequent cross-streets near Toledo.
+            elif stage==2:
+                lo,hi,cross_every=2,6,4
+            # Vomero: winding high-ground route around gardens and plazas.
+            elif stage==3:
+                lo,hi,cross_every=2,7,8
+                if u in (0,1,9,10) or (7<=x<=12 and 2<=y<=5):
+                    code=C_PARK if (x+y)%3 else C_PLAZA
+            # Virgiliano: park headland, coastal edge and open water.
+            elif stage==4:
+                lo,hi,cross_every=2,6,10
+                code=C_PARK
+                if u==8: code=C_SEAWALL
+                elif u>=9: code=C_SEA
+            # Sotterranea echoes the historic-center street axis below ground.
+            elif stage==5:
+                lo,hi,cross_every=2,7,6
+                code=C_WALL if (x+y)%3 else C_PLAZA
+            if u==lo-1: code=C_ROAD_LEFT
+            elif u==hi+1: code=C_ROAD_RIGHT
+            elif lo<=u<=hi: code=C_CROSS if x%cross_every in (0,1) else C_ROAD
+            maps[stage,y,x]=code
 
-tile_pix=[]
-for t in reps:
-    tile_pix.append(map_rgb(Image.fromarray(t),False).reshape(-1))
-tile_pix=np.concatenate(tile_pix).astype(np.uint8)
+tile_pix=np.concatenate([map_rgb(semantic_tile(stage,code),False).reshape(-1)
+                         for stage in range(6) for code in range(CODE_COUNT)]).astype(np.uint8)
+K=6*CODE_COUNT
 
 # Sprite crops from the actual sprite strip in the sheet. We use eight clear
 # Fiat views, preserving the white 1971 500 L body and chrome/dark details.
@@ -150,7 +195,8 @@ for si in range(6):
     canvas=np.zeros((160,320),dtype=np.uint8)
     for ty in range(10):
         for tx in range(20):
-            k=int(maps[si,ty,tx]); tile=tile_pix[k*256:(k+1)*256].reshape(16,16)
+            code=int(maps[si,ty,tx]); k=si*CODE_COUNT+code
+            tile=tile_pix[k*256:(k+1)*256].reshape(16,16)
             canvas[ty*16:(ty+1)*16,tx*16:(tx+1)*16]=tile
     p=indices_to_rgb(canvas); p.save(OUT/f'runtime_stage_{si}.png'); previews.append(p)
 contact=Image.new('RGB',(640,480),(0,0,0))
@@ -169,6 +215,7 @@ def c_array(name,arr,ctype='uint8_t',per=20):
 with HDR.open('w') as f:
     f.write('#ifndef NAPRIDER_ASSETS8_H\n#define NAPRIDER_ASSETS8_H\n#include <stdint.h>\n')
     f.write(f'#define NR_PALETTE_COUNT {len(colors)}\n#define NR_TILE_COUNT {K}\n')
+    f.write(f'#define NR_MAP_CODE_COUNT {CODE_COUNT}\n')
     f.write('#define NR_TILE_W 16\n#define NR_TILE_H 16\n#define NR_STAGE_W 20\n#define NR_STAGE_H 10\n')
     f.write('#define NR_CAR_W 48\n#define NR_CAR_H 40\n#define NR_CAR_FRAMES 8\n')
     f.write('#define NR_SCOOT_W 24\n#define NR_SCOOT_H 32\n#define NR_SCOOT_FRAMES 8\n')

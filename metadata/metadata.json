@@ -4,7 +4,7 @@
   "title": "napRider-napoli97",
   "version": "1.0.0",
   "summary": "Isometric 1997 Naples myth-adventure in a white 1971 Fiat 500 L.",
-  "description": "An unofficial PRG32 arcade adventure set in Naples in 1997. Drive a recognizable white 1971 Fiat 500 L through isometric city districts, follow fictional Virgilian signs, evade scooter gangs, and descend into Napoli Sotterranea for a final encounter with the legendary Egg of Virgil. Graphics are 8-bit indexed sprites and an aggressively reused tile bank derived from the project's approved visual sheet.",
+  "description": "An unofficial PRG32 arcade adventure set in Naples in 1997. Drive a recognizable white 1971 Fiat 500 L through byte-coded isometric districts with coherent roads, crossings, buildings, seafronts, parks and underground corridors; follow fictional Virgilian signs, evade scooter gangs, and descend into Napoli Sotterranea for a final encounter with the legendary Egg of Virgil.",
   "authors": [{"name":"napRider-napoli97 contributors"}],
   "license": "MIT",
   "repository": "https://github.com/riscv-prg32/napRider-napoli97",

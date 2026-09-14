@@ -31,5 +31,9 @@ int main(void)
     handbrake=1; lane=44; speed=1;
     update_play(PRG32_BTN_RIGHT,0);
     assert(lane==44);
+    assert(steer==1 && car_frame()==1);
+    handbrake=0;
+    update_play(0,0);
+    assert(steer==0 && car_frame()==0);
     return 0;
 }
