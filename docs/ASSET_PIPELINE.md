@@ -10,4 +10,4 @@ The geographic reasoning behind each authored layout is documented in [MAP_REFER
 
 The generated C data is `src/assets8.h`. It contains no host pointers, which matters for portable PRG32 cartridges because QEMU and ESP32-C6 can load the cartridge at different executable-RAM bases. `game.c` constructs `prg32_indexed_sprite_t` descriptors at runtime using PC-relative asset addresses.
 
-The generation dependencies are intentionally development-only: Pillow, NumPy and scikit-learn. The cartridge itself has no dependency on them.
+The generation dependencies are intentionally development-only: Pillow and NumPy. The cartridge itself has no dependency on them.

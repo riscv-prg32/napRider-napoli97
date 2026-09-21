@@ -41,5 +41,9 @@ int main(void)
     handbrake=0;
     update_play(0,0);
     assert(steer==0 && car_frame()==6);
+
+    lights=1;
+    update_play(PRG32_BTN_SELECT|PRG32_BTN_B, PRG32_BTN_B);
+    assert(lights==0);
     return 0;
 }

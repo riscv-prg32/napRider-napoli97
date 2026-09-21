@@ -111,7 +111,8 @@ for stage in range(6):
     for y in range(10):
         for x in range(20):
             code=C_BUILDING_A if (x+y)%2 else C_BUILDING_B
-            # Rows 0..2 are the far layer; 3..5 are district scenery.
+            # Rows 0..2 are the far layer; 3..4 are district scenery; 5..9 are the road
+# (row 5 is the road's left edge, overwritten below).
             if stage==1:
                 if y<=2: code=C_SEA
                 elif y==3: code=C_SEAWALL

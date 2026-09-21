@@ -117,6 +117,7 @@ static void update_play(uint32_t in,uint32_t pressed){
     steer=0;
     if((pressed&PRG32_BTN_B) && !(in&PRG32_BTN_SELECT)){auto_mode=(uint8_t)!auto_mode;say(auto_mode?"SELF DRIVE ON":"SELF DRIVE OFF");}
     if(pressed&PRG32_BTN_SELECT){if(in&PRG32_BTN_B)lights=(uint8_t)!lights;else handbrake=(uint8_t)!handbrake;}
+    else if((pressed&PRG32_BTN_B)&&(in&PRG32_BTN_SELECT)){lights=(uint8_t)!lights;}
     if(auto_mode){
         int t=nearest_scooter();
         if(pressed&PRG32_BTN_LEFT)gadget=(uint8_t)((gadget+2)%3);
@@ -176,7 +177,7 @@ void naprider_update(void){
 static void draw_stage_tiles(void){
     int sx,sy;
     for(sy=0;sy<NR_STAGE_H;sy++){
-        int scroll_x=sy<3?(stage_progress>>5):sy<6?(stage_progress>>4):track_scroll();
+        int scroll_x=sy<3?(stage_progress>>5):sy<5?(stage_progress>>4):track_scroll();
         int tile_dx=(scroll_x>>4)%NR_STAGE_W,px=-(scroll_x&15);
         for(sx=0;sx<21;sx++){
         int mx=(sx+tile_dx)%NR_STAGE_W,my=sy;

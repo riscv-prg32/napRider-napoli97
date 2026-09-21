@@ -3,7 +3,7 @@
   "id": "org.riscv-prg32.naprider-napoli97",
   "title": "napRider-napoli97",
   "version": "1.0.0",
-  "summary": "Isometric Napoli 1997 myth-adventure starring a white 1971 Fiat 500 L.",
+  "summary": "Horizontal-parallax Napoli 1997 myth-adventure starring a white 1971 Fiat 500 L.",
   "architectures": [
     {"id":"esp32c6","file":"naprider-napoli97-esp32c6.prg32"},
     {"id":"qemu","file":"naprider-napoli97-qemu.prg32"}

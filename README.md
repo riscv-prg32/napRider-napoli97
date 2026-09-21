@@ -32,7 +32,7 @@ Manual drive uses up/down for lane changes, left/right for braking and accelerat
 The approved visual sheet is included at `assets/source/naprider_visual_sheet.png` and is the actual source of the shipped graphics. `tools/extract_visual_sheet.py` derives:
 
 - a shared 128-entry RGB565 palette;
-- **66 reusable 16x16, 8-bpp indexed semantic tiles**;
+- **72 reusable 16x16, 8-bpp indexed semantic tiles**;
 - six 20x10 stage tilemaps;
 - eight 48x40 pseudo-3D Fiat 500 L frames;
 - eight 24x32 scooter frames;
