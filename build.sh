@@ -1,37 +1,56 @@
 #!/usr/bin/env bash
+# Build napRider-napoli97: assets -> tests -> portable cartridge -> Store bundle.
+#   PRG32_ROOT=/path/to/PRG32 [CARTRIDGE_STORE_ROOT=/path/to/CartridgeStore] ./build.sh
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="${PRG32_ROOT:-}"
-if [[ -z "$ROOT" ]]; then
-  CANDIDATE="$(cd "$HERE/../PRG32" 2>/dev/null && pwd || true)"
-  if [[ -f "$CANDIDATE/prg32/__main__.py" || -d "$CANDIDATE/prg32" ]]; then ROOT="$CANDIDATE"; fi
-fi
+if [[ -z "$ROOT" && -d "$HERE/../PRG32/prg32" ]]; then ROOT="$(cd "$HERE/../PRG32" && pwd)"; fi
 if [[ -z "$ROOT" || ! -d "$ROOT/prg32" ]]; then
-  echo "Set PRG32_ROOT to a checkout of https://github.com/riscv-prg32/PRG32/tree/main" >&2
+  echo "Set PRG32_ROOT to a checkout of https://github.com/riscv-prg32/PRG32 (main)" >&2
   exit 2
 fi
+# The RISC-V toolchain comes from ESP-IDF; use its install if not on PATH yet.
+if ! command -v riscv32-esp-elf-gcc >/dev/null; then
+  TC="$(ls -d "$HOME"/.espressif/tools/riscv32-esp-elf/*/riscv32-esp-elf/bin 2>/dev/null | tail -1 || true)"
+  [[ -n "$TC" ]] && export PATH="$TC:$PATH"
+fi
+NAME=naprider-napoli97
+LIMIT=65536          # default PRG32 package limit (CONFIG_PRG32_CART_MAX_KIB=64)
+python3 "$HERE/tools/generate_assets.py"
+python3 "$HERE/tools/generate_audio.py"
+python3 "$HERE/tests/source_checks.py"
+bash "$HERE/tests/host_syntax.sh"
+bash "$HERE/tests/run_harness.sh"
+VERSION="$(python3 -c 'import json,sys;print(json.load(open(sys.argv[1]))["version"])' "$HERE/metadata/metadata.json")"
+BUNDLE="$NAME-$VERSION-store.zip"
 BUILD="$HERE/build"; DIST="$HERE/dist"; STORE="$DIST/store"
-rm -rf "$BUILD" "$STORE"; mkdir -p "$BUILD" "$STORE"
+rm -rf "$BUILD" "$DIST"; mkdir -p "$BUILD" "$STORE"
 cd "$ROOT"
 python3 tools/prg32audio_pack.py "$HERE/audio.json" --out "$BUILD/naprider-audio.block"
-python3 "$HERE/tools/build_extended.py" cartridge build "$HERE/src/game.c" \
-  --portable --entry-prefix naprider --name naprider-napoli97 \
-  --audio-block "$BUILD/naprider-audio.block" \
-  --out "$BUILD/naprider-napoli97-base.prg32"
+# 32 KiB of cartridge RAM is the smallest PRG32 profile: the game runs on all of them.
+python3 -m prg32 cartridge build "$HERE/src/game.c" --portable --cart-ram-kib 32 \
+  --entry-prefix naprider --name "$NAME" \
+  --audio-block "$BUILD/naprider-audio.block" --out "$BUILD/$NAME-base.prg32"
 for arch in esp32c6 qemu; do
-  python3 -m prg32 store attach-metadata "$BUILD/naprider-napoli97-base.prg32" \
-    --metadata "$HERE/metadata/metadata.json" --icon "$HERE/assets/generated/icon.png" \
-    --screenshot "$HERE/assets/generated/screenshot.png" --colophon "$HERE/metadata/colophon.json" \
-    --architecture "$arch" --out "$STORE/naprider-napoli97-$arch.prg32"
+  python3 -m prg32 store attach-metadata "$BUILD/$NAME-base.prg32" --metadata "$HERE/metadata/metadata.json" \
+    --icon "$HERE/assets/generated/icon.png" --screenshot "$HERE/assets/generated/screenshot.png" \
+    --colophon "$HERE/metadata/colophon.json" --architecture "$arch" --out "$STORE/$NAME-$arch.prg32"
 done
-cp "$HERE/metadata/manifest.json" "$HERE/assets/generated/icon.png" "$HERE/assets/generated/screenshot.png" "$HERE/metadata/colophon.json" "$STORE/"
-python3 -m prg32 cartridge summary "$STORE/naprider-napoli97-esp32c6.prg32"
-python3 -m prg32 store inspect-metadata "$STORE/naprider-napoli97-esp32c6.prg32"
-python3 -m prg32 store pack-bundle --manifest "$STORE/manifest.json" --out "$DIST/naprider-napoli97-1.0.0-store.zip"
-python3 "$HERE/tests/source_checks.py"
+python3 "$HERE/tools/store_manifest.py" "$STORE/manifest.json"
+cp "$HERE/assets/generated/icon.png" "$HERE/assets/generated/screenshot.png" "$STORE/"
+python3 -m prg32 cartridge summary "$STORE/$NAME-esp32c6.prg32" >/dev/null
+python3 -m prg32 store inspect-metadata "$STORE/$NAME-esp32c6.prg32" >/dev/null
+python3 -m prg32 store pack-bundle --manifest "$STORE/manifest.json" --out "$DIST/$BUNDLE"
 for f in "$STORE"/*.prg32; do
-  size=$(wc -c < "$f")
-  if (( size > 131072 )); then echo "ERROR: $f exceeds PRG32 128 KiB package limit" >&2; exit 3; fi
+  size=$(wc -c < "$f"); echo "$(basename "$f"): $size / $LIMIT bytes"
+  test "$size" -le "$LIMIT" || { echo "$f exceeds 64 KiB" >&2; exit 3; }
 done
-( cd "$DIST" && sha256sum store/*.prg32 naprider-napoli97-1.0.0-store.zip > SHA256SUMS )
-echo "Built PRG32 main portable variants and Store bundle in $DIST"
+STORE_ROOT="${CARTRIDGE_STORE_ROOT:-}"
+if [[ -z "$STORE_ROOT" && -d "$HERE/../CartridgeStore/cartridge_store" ]]; then STORE_ROOT="$HERE/../CartridgeStore"; fi
+if [[ -n "$STORE_ROOT" ]]; then
+  python3 "$HERE/tools/check_store_bundle.py" "$DIST/$BUNDLE" "$STORE_ROOT"
+else
+  echo "CARTRIDGE_STORE_ROOT not set: skipping Store intake check" >&2
+fi
+(cd "$DIST" && shasum -a 256 store/*.prg32 "$BUNDLE" > SHA256SUMS)
+echo "Built portable cartridge and Store bundle: $DIST/$BUNDLE"

@@ -2,28 +2,31 @@
   "abi": "prg32-metadata-1.0",
   "id": "org.riscv-prg32.naprider-napoli97",
   "title": "napRider-napoli97",
-  "version": "1.0.0",
-  "summary": "Horizontal-parallax 1997 Naples myth-adventure in a white 1971 Fiat 500 L.",
-  "description": "An unofficial PRG32 horizontal parallax arcade adventure set in Naples in 1997. Drive a recognizable white 1971 Fiat 500 L through byte-coded districts, collect five Virgilian puzzle fragments, evade scooter gangs, unlock Napoli Sotterranea, and choose whether to take or save the legendary Egg of Virgil.",
-  "authors": [{"name":"napRider-napoli97 contributors"}],
+  "name": "naprider-napoli97",
+  "version": "2.0.0",
+  "authors": [{"name": "napRider-napoli97 contributors"}],
+  "developer": {"name": "napRider-napoli97 contributors"},
   "license": "MIT",
+  "homepage": "https://github.com/riscv-prg32/napRider-napoli97",
   "repository": "https://github.com/riscv-prg32/napRider-napoli97",
-  "tags": ["arcade","driving","naples","parallax","8-bit","mythology","virgil","fiat-500","sid-like"],
+  "summary": "Naples, 1997: drive a white Fiat 500 L through six districts, dodge the scooter gangs and find the Egg of Virgil.",
+  "description": "An unofficial horizontal-parallax arcade adventure set in Naples in 1997. Drive a white 1971 Fiat 500 L through Centro Storico, Posillipo, the Quartieri Spagnoli, Vomero by night and Parco Virgiliano, collect five Virgilian mosaic fragments while scooter gangs block and chase you, refuel at the pumps, light the tunnels, then descend into Napoli Sotterranea and choose whether to take or leave the legendary Egg of Virgil. Palette-indexed pixel art with exact colours on the ESP32-C6, palette effects, and an original eight-track SID-like soundtrack with stereo-panned effects.",
+  "tags": ["game", "arcade", "driving", "naples", "parallax", "mythology", "virgil", "fiat-500", "sid-like", "retro"],
+  "genre": ["arcade", "driving"],
+  "players": {"min": 1, "max": 1},
+  "year": 2026,
+  "language": "it",
+  "controls": "UP/DOWN lanes, RIGHT accelerate, LEFT brake, A turbo or gadget, B self-drive, SELECT handbrake, SELECT+B headlights",
+  "content_rating": "Everyone",
   "created_at": "2026-09-13T00:00:00Z",
-  "updated_at": "2026-09-13T00:00:00Z",
+  "updated_at": "2026-10-03T00:00:00Z",
   "runtime": {
     "platform": "PRG32",
-    "isa": "RV32I",
-    "architectures": [
-      {"id":"esp32c6","label":"ESP32-C6 hardware","target":"esp32c6","display":"ili9341","isa":"RV32I"},
-      {"id":"qemu","label":"QEMU virtual screen","target":"esp32c3","display":"qemu-rgb","isa":"RV32I"}
-    ],
-    "recommended_profile": "esp32c6-128k",
-    "viewport": "320x200"
+    "isa": "RV32IMC",
+    "architectures": ["esp32c6", "qemu"]
   },
-  "assets": {
-    "icon": {"block":"ICON","mime":"image/png"},
-    "screenshot": {"block":"SCRN","mime":"image/png","optional":true},
-    "colophon": {"block":"COLO","abi":"prg32-colophon-1.0"}
-  }
+  "multiplayer": false,
+  "features": ["portable", "audio-plus", "indexed-palette-art", "exact-colours-on-indexed-framebuffer", "palette-effects", "three-layer-parallax", "sid-like-soundtrack", "stereo-panned-effects", "local-scoreboard", "self-drive", "two-endings"],
+  "cartridge_profile": "portable-32k",
+  "fiction_notice": "An unofficial tribute. The story mixes real places and the legend of Virgil's Egg with invented events. Fiat and Vespa are named descriptively as period vehicles; no logos, trademarks, television characters or soundtrack are reproduced and no affiliation is implied."
 }

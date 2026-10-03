@@ -1,12 +1,12 @@
 # Release checklist
 
-- [ ] Re-run `make assets` and commit deterministic changes.
-- [ ] Run `make check`.
-- [ ] Build against a fresh `riscv-prg32/PRG32` `main` checkout in ESP-IDF 5.4.1.
-- [ ] Confirm `python3 -m prg32 cartridge summary` reports portable ABI compatibility.
-- [ ] Confirm both `.prg32` files are <= 131072 bytes.
-- [ ] Test QEMU controls and capture a real 320x200 screenshot/preview.
-- [ ] Flash/test an ESP32-C6 running the 128 KiB cartridge-RAM profile.
-- [ ] Replace the deterministic software preview screenshot with a real QEMU capture before a binary release, if available.
-- [ ] Inspect Store metadata and bundle ZIP.
-- [ ] Tag `v1.0.0` only after runtime validation.
+- [x] `make assets` regenerates `src/assets.h` and `audio.json` with no diff.
+- [x] `make check` passes (static checks, strict C99, bot playthrough on both display models).
+- [x] `./build.sh` against `riscv-prg32/PRG32` `main` (2.0.0: commit `a8669e5`).
+- [x] Both `.prg32` files are within 65536 bytes.
+- [x] The Cartridge Store intake code accepts the bundle.
+- [x] QEMU: boots from the Store cartridge, title, controls, music and effects (`make capture`).
+- [x] Store screenshot is a real QEMU capture.
+- [ ] ESP32-C6: colours match QEMU, frame rate is acceptable, stereo panning on two MAX98357A boards.
+- [ ] Publish `dist/naprider-napoli97-<version>-store.zip` to the Cartridge Store.
+- [ ] Tag the version after the hardware run.

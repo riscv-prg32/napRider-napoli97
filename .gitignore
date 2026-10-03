@@ -1,7 +1,7 @@
-# Prerequisites
+# Build intermediates (dist/ holds the published Store bundle and is tracked)
 build/
-dist/
 __pycache__/
+.DS_Store
 *.d
 
 # Object files

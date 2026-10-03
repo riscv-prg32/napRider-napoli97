@@ -1,142 +1,138 @@
 # napRider-napoli97
 
-**napRider-napoli97** is an unofficial PRG32 horizontal parallax arcade adventure set in Naples in 1997. The joke in the title is intentional: `nap` is Napoli, and the project playfully echoes the talking-car action genre without using official Knight Rider names, characters, logos, dialogue, music, or artwork.
+**napRider-napoli97** is an unofficial PRG32 horizontal-parallax arcade adventure set in Naples in 1997. The joke in the title is intentional: `nap` is Napoli, and the project playfully echoes the talking-car action genre without using official Knight Rider names, characters, logos, dialogue, music, or artwork.
 
-![Runtime-asset preview](assets/generated/screenshot.png)
+![The six districts and the Egg, as the cartridge draws them](release-artifacts/naprider-napoli97-contact-sheet.png)
+
+A 30-second capture of the cartridge running in PRG32's QEMU firmware, with its real audio, is in [release-artifacts/naprider-napoli97-qemu-demo.mp4](release-artifacts/naprider-napoli97-qemu-demo.mp4).
 
 ## Premise
 
-The San Gennaro treasure plot has been removed. The new story is mythological: the player collects five fictional **Virgilian puzzle fragments** encoded in the district maps while scooter gangs pursue and obstruct the route. Completing the mosaic opens **Napoli Sotterranea**. The final playable scene reaches the legendary **Egg of Virgil**, where the player can take it or leave it in place.
+The player collects five fictional **Virgilian mosaic fragments** hidden on the roads of five districts while scooter gangs block and chase the car. Completing the mosaic opens **Napoli Sotterranea**. The final scene reaches the legendary **Egg of Virgil**, where the player can take it or leave it in place.
 
 The story deliberately mixes real places and a historical legend with fictional game events; it is not a claim about the actual archaeology of Naples.
 
-## Player car
+## The car
 
-The hero vehicle is a **white 1971 Fiat 500 L classic**, drawn from the approved visual sheet and packed as dedicated 8-bit indexed pseudo-3D frames. It is intentionally larger and more detailed than ordinary traffic so the 500's rounded roof, compact two-box silhouette, small wheels, chrome bumpers and rear-engine proportions remain recognizable at 320x200.
+The hero vehicle is a **white 1971 Fiat 500 L**, drawn pixel by pixel in side view: the domed cabin over the rounded body, folded canvas roof, rear engine louvres, chrome bumpers and small wheels.
 
-The car keeps the four signature phrases requested for the saga:
+The car talks. Its four phrases from the saga are all here, each with a two-note voice:
 
 - `vai cuonc cuonc` — start
 - `ho sete` — low fuel
-- `hai lasciato le luci accese` — lights/battery warning
-- `ah il freno a mano` — handbrake warning
+- `hai lasciato le luci accese` — headlights draining the battery
+- `ah il freno a mano` — accelerating with the handbrake on
 
-## Gameplay
+## How to play
 
-The game uses horizontal scrolling with three parallax speeds for distant scenery, district scenery and road surface. Surface stages are Centro Storico, Posillipo, Quartieri Spagnoli, Vomero and Parco Virgiliano; collecting their five fragments unlocks the sixth and final stage, Napoli Sotterranea.
+| Input | Manual | Self-drive |
+| --- | --- | --- |
+| UP / DOWN | change lane | — |
+| RIGHT / LEFT | accelerate / brake | next / previous gadget |
+| A | turbo | use the gadget |
+| B | switch to self-drive | switch to manual |
+| SELECT | handbrake on/off | handbrake on/off |
+| SELECT + B | headlights on/off | headlights on/off |
 
-Manual drive uses up/down for lane changes, left/right for braking and acceleration, plus turbo and handbrake slides. `B` toggles self-drive. In AUTO the car steers toward the route while the player selects and deploys the arcade gadgets **rauti**, **grasso** and **chiodi** against pursuing scooter gangs. These are intentionally abstract game mechanics, not real-world instructions.
+- Each district is nine screens long. Its **fragment** shows up on the road every other screen; drive over it. Leaving a district without it sends you round again.
+- **Scooter gangs** grow district by district: some dawdle in your lane, some come up from behind and cut in. A collision costs fuel and speed and shakes the screen.
+- **Self-drive** keeps to the top lane, dodges on its own and frees you to use the gadgets: **rauti** (fired ahead), **grasso** and **chiodi** (dropped behind). It never fetches a fragment for you.
+- **Fuel** runs out in under two minutes of cruising. Petrol pumps stand on the pavement in Posillipo, Vomero and Parco Virgiliano: pass them in the top lane. An empty tank ends the run.
+- **Vomero** at night and **Napoli Sotterranea** are dark without headlights. Lights drain the battery; driving unlit recharges it.
+- Rubble blocks lanes underground.
+- The score is kept in the firmware's local top five and synchronised with the Cartridge Store when the console is online.
 
-## 8-bit graphics and tile strategy
+## Graphics: indexed colours, exact on the board
 
-The approved visual sheet is included at `assets/source/naprider_visual_sheet.png` and is the actual source of the shipped graphics. `tools/extract_visual_sheet.py` derives:
+On the ESP32-C6, PRG32 keeps the 320x200 playfield as an 8-bit indexed framebuffer with a 256-entry palette. When a cartridge draws an indexed sprite, the firmware maps each of the sprite's colours to a cell of its 6x6x6 system colour cube, so by default the art is quantised to 216 fixed colours. QEMU keeps an RGB565 surface instead and shows the sprite's own colours.
 
-- a shared 128-entry RGB565 palette;
-- **72 reusable 16x16, 8-bpp indexed semantic tiles**;
-- six 20x10 stage tilemaps;
-- eight 48x40 pseudo-3D Fiat 500 L frames;
-- eight 24x32 scooter frames;
-- an indexed Virgil's Egg sprite;
-- Store icon and artwork.
+napRider uses the palette API to get the same, exact colours on both:
 
-The runtime uses `prg32_indexed_sprite_t` with `bits_per_pixel = 8` and `prg32_sprite_draw_indexed()`. Each byte-coded map distinguishes roads, crossings, buildings, sea, seawalls, parks, plazas, underground masonry and collectible fragments, with district-specific tiles. Current indexed graphics payload is about **43 KiB before code/audio**, leaving room inside the 128 KiB cartridge package and optional 128 KiB ESP32-C6 cartridge-RAM profile.
+- the art keeps **at most one colour per cube cell** among everything visible together (`tools/generate_assets.py` enforces it, `tests/source_checks.py` re-checks it);
+- the cartridge writes each colour into the palette entry of its own cell with `prg32_palette_set`, so the firmware's mapping lands on the authored colour;
+- sky gradients, HUD bars and gadgets are drawn with `prg32_gfx_rect_indexed` on palette entries the cube never uses (232-243) and on the eight named colours.
 
-A deterministic contact sheet reconstructed from the actual tile bank is available at `assets/generated/runtime_stages_contact.png`.
+`tests/harness/run_harness.c` models both display back ends and fails if a single pixel differs between them in normal play.
+
+Everything is 4 bpp or less: a 26-tile bank shared by all districts (the pixels are *roles* such as asphalt, wall or water; each district supplies a 16-colour palette), six 20x10 maps, the car, three palette-swapped scooter gangs, the Egg, Vesuvius, an island and the headlight beam. That is about 9 KiB of art.
+
+### Special effects
+
+All are palette effects, so they cost no extra drawing:
+
+- districts **fade** in from and out to black;
+- the **unlit tunnel**: without headlights the whole palette drops to a third of its brightness;
+- a **white flash** when a fragment is collected;
+- the **sea shimmers** off Posillipo and the Parco Virgiliano; **torches** flicker underground; the **Egg** glows;
+- **sky gradients** change with the hour, from afternoon in the Centro Storico to sunset at the Parco Virgiliano.
+
+There are also three parallax layers (far, district, road), a headlight beam, turbo exhaust flame, screen shake and blinking after a crash.
+
+## Audio: SID-like and stereo
+
+`audio.json` is generated by `tools/generate_audio.py` and contains no PCM: ten procedural instruments (pulse, saw, triangle and noise oscillators with filter and ADSR) and eight original tracker tracks, one per district plus the Egg and a game-over sting. Music uses voices 0-3, panned left, right and centre. The game plays its effects on voices 4-7 and pans them by screen position: the engine note follows the speed, the nearest scooter buzzes from its side, and there are turbo, gadget, crash, fragment and petrol sounds. On mono hardware the pans are ignored.
+
+The soundtrack does **not** reproduce the Knight Rider theme or any traditional melody.
 
 ## PRG32 firmware target
 
-This repository targets **`riscv-prg32/PRG32` branch `main`**, not `development-c6`.
+This repository targets **`riscv-prg32/PRG32` branch `main`** and its portable ABI-table cartridges. One build serves both Store architecture variants:
 
-PRG32 `main` requires portable ABI-table cartridges. The package is built with `--portable` and is designed for both Store architecture variants:
+- `esp32c6` — the physical board;
+- `qemu` — the ESP32-C3 QEMU graphics target.
 
-- `esp32c6` — physical ESP32-C6;
-- `qemu` — ESP32-C3 QEMU graphics target.
-
-For the physical board, this game recommends the optional **128 KiB cartridge-RAM profile**, because its high-detail indexed assets intentionally use the larger cartridge budget. The game viewport remains 320x200 under that profile.
+The Store cartridge is about 36 KiB, inside the default 64 KiB package limit, and needs about 24 KiB of cartridge RAM, so it runs on every PRG32 profile including the 32 KiB classroom one. It needs ABI 1.5 or later (indexed framebuffer calls).
 
 ## Build
 
-Requirements:
-
-1. A checkout of `https://github.com/riscv-prg32/PRG32` on `main`.
-2. ESP-IDF 5.4.1 environment, as used by PRG32 CI.
-3. This repository anywhere on disk.
+Requirements: a checkout of `https://github.com/riscv-prg32/PRG32` on `main`, the ESP-IDF RISC-V toolchain, Python 3 with Pillow and NumPy (`pip install -r requirements-dev.txt`).
 
 ```bash
-export PRG32_ROOT=/path/to/PRG32
-. "$IDF_PATH/export.sh"
-./build.sh
+PRG32_ROOT=/path/to/PRG32 CARTRIDGE_STORE_ROOT=/path/to/CartridgeStore ./build.sh
 ```
 
-Expected products:
+`build.sh` regenerates the art and the score, runs every test, builds the portable cartridge, attaches the Store metadata for both architectures, packs the bundle and, when a Cartridge Store checkout is available, validates the bundle with the Store's own intake code. Products:
 
 ```text
 dist/store/naprider-napoli97-esp32c6.prg32
 dist/store/naprider-napoli97-qemu.prg32
-dist/naprider-napoli97-1.0.0-store.zip
+dist/store/manifest.json, icon.png, screenshot.png
+dist/naprider-napoli97-2.0.0-store.zip
 dist/SHA256SUMS
 ```
 
-The build script rejects Store cartridges larger than 131072 bytes. Its portable
-builder uses the 64 KiB QEMU cartridge-RAM limit; PRG32 currently defaults to
-a 32 KiB build-time check even when firmware is configured for more RAM, so
-`tools/build_extended.py` applies the QEMU limit during cartridge creation.
-Use QEMU's extended RAM profile or the 128 KiB ESP32-C6 profile to run it.
+`dist/` is committed so the Store bundle can be taken straight from the repository.
 
-### 128 KiB ESP32-C6 firmware profile
-
-From the PRG32 `main` checkout:
-
-```bash
-idf.py -B build-esp32c6-128k \
-  -D SDKCONFIG_DEFAULTS="sdkconfig.defaults;sdkconfig.defaults.esp32c6_128k" \
-  set-target esp32c6
-idf.py -B build-esp32c6-128k build
-```
-
-Check the board setup resource screen for `CART RAM` before deploying this cartridge.
-
-## Upload / QEMU
+## Run
 
 Hardware:
 
 ```bash
-python3 -m prg32 esp32c6 upload \
-  dist/store/naprider-napoli97-esp32c6.prg32 \
-  --url http://192.168.4.1
+python3 -m prg32 esp32c6 upload dist/store/naprider-napoli97-esp32c6.prg32 --url http://192.168.4.1
 ```
 
-QEMU staging from the PRG32 repository:
+QEMU, from the PRG32 checkout:
 
 ```bash
-python3 /path/to/napRider-napoli97/tools/upload_qemu_extended.py /path/to/napRider-napoli97/dist/store/naprider-napoli97-qemu.prg32
-python3 -m qemu run
+python3 -m prg32 qemu upload /path/to/napRider-napoli97/dist/store/naprider-napoli97-qemu.prg32
+python3 -m prg32 qemu run
 ```
 
 ## Validation
-
-Fast local checks do not require ESP-IDF:
 
 ```bash
 make check
 ```
 
-This runs the project source assertions plus a strict C11 `-Wall -Wextra -Werror` host syntax check against the small test stub. The real PRG32 headers remain authoritative; the stub is never packed into the cartridge.
+runs, without ESP-IDF:
 
-Regenerate bitmap-derived assets with:
+- `tests/source_checks.py` — entry points, phrases, map and palette invariants, audio layout, metadata;
+- `tests/host_syntax.sh` — strict C99 `-Wall -Wextra -Werror -pedantic`;
+- `tests/run_harness.sh` — a bot plays the whole campaign on a software model of both display back ends, then the controls and the failure paths are exercised.
 
-```bash
-python3 -m pip install -r requirements-dev.txt
-make assets
-```
+`make screens` renders the screenshots from the harness. `make capture` runs the cartridge in the QEMU firmware, records a demo with its real audio and refreshes the Store screenshot (see `tools/qemu_capture.py`).
 
-## Audio
-
-`audio.json` uses PRG32 SID-like procedural instruments and stereo panning. The soundtrack is original and does **not** reproduce the Knight Rider theme melody or recording.
-
-## Status
-
-The repository is structured for PRG32 `main`, GitHub Actions, Cartridge Store metadata, reproducible graphics extraction, and Store bundle generation. This package was host-validated in the creation environment, but the final `.prg32` binaries must be produced by PRG32's ESP-IDF/RISC-V build environment and should be captured/tested in QEMU and on the 128 KiB-profile ESP32-C6 before tagging a public binary release.
+Version 2.0.0 was run in QEMU on PRG32 `main` at commit `a8669e5`. It has not yet been run on an ESP32-C6 board: see [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
 
 ## License
 

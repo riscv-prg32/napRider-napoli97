@@ -1,5 +1,6 @@
 # Release artwork
 
-These files are generated from the exact visual-sheet asset pipeline committed in the repository and are suitable for the GitHub project page/release notes.
+- `naprider-napoli97-contact-sheet.png` and `screens/` are exact frames of `src/game.c`, rendered by the host harness (`make screens`).
+- `qemu/` and `naprider-napoli97-qemu-demo.mp4` are captured from the cartridge running in PRG32's QEMU firmware, with its real audio (`make capture`).
 
-The `.prg32` architecture variants and Cartridge Store ZIP are intentionally not checked in: `build.sh` creates them against the selected PRG32 `main` checkout, and CI uploads them as workflow artifacts.
+The Store bundle and both architecture variants are in `dist/`.

@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
+# Strict host compile of the cartridge source against the small API stub.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 CC="${CC:-cc}"
-"$CC" -std=c11 -Wall -Wextra -Werror -fsyntax-only -I"$HERE/stub" -I"$HERE/../src" "$HERE/../src/game.c"
-TEST_BIN="$(mktemp "${TMPDIR:-/tmp}/naprider-gameplay.XXXXXX")"
-trap 'rm -f "$TEST_BIN"' EXIT
-"$CC" -std=c11 -Wall -Wextra -Werror -I"$HERE/stub" -I"$HERE/../src" "$HERE/gameplay.c" -o "$TEST_BIN"
-"$TEST_BIN"
+"$CC" -std=c99 -Wall -Wextra -Werror -pedantic -fsyntax-only -I"$HERE/stub" -I"$HERE/../src" "$HERE/../src/game.c"
+echo "OK: src/game.c is clean C99"

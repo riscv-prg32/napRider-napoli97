@@ -2,23 +2,30 @@
   "abi": "prg32-colophon-1.0",
   "title": "napRider-napoli97",
   "subtitle": "Tra mito, storia e asfalto",
-  "version": "1.0.0",
-  "release_date": "2026-09-13",
-  "developer": {"name":"napRider-napoli97 contributors"},
+  "version": "2.0.0",
+  "release_date": "2026-10-03",
+  "developer": {"name": "napRider-napoli97 contributors"},
   "authors": [],
   "license": "MIT",
-  "acknowledgements": [
-    "Built for riscv-prg32/PRG32 main portable ABI",
-    "Naples 1997 setting and Virgil's Egg legend are used as inspiration for a fictional story",
-    "Original SID-like soundtrack; no television soundtrack melody or recording is included"
+  "technology": [
+    "PRG32 portable ABI-table cartridge; runs in every cartridge-RAM profile from 32 KiB",
+    "4-bpp palette-indexed tiles and sprites, one colour per system-cube cell for exact colours on the ESP32-C6",
+    "palette effects: district fades, unlit tunnels, fragment flash, shimmering sea, torch and Egg glow",
+    "three-layer horizontal parallax with sky gradients on reserved palette entries",
+    "ten SID-like procedural instruments, eight tracker tracks, stereo-panned effects on four voices"
   ],
-  "content_notice": "Unofficial tribute game. napRider is a playful name; the project is not affiliated with Knight Rider, Fiat/Stellantis, municipal institutions, or custodians of Naples cultural sites.",
+  "acknowledgements": [
+    "Built for riscv-prg32/PRG32 main",
+    "Naples in 1997 and the legend of Virgil's Egg inspire a fictional story",
+    "Original soundtrack; no television theme or traditional melody is quoted"
+  ],
+  "content_notice": "Unofficial tribute game. napRider is a playful name; the project is not affiliated with Knight Rider, Fiat/Stellantis, Piaggio, municipal institutions, or custodians of Naples cultural sites.",
   "controls": [
-    {"input":"UP/DOWN","action":"Change road lane"},
-    {"input":"LEFT/RIGHT","action":"Brake / accelerate; in AUTO select gadget"},
-    {"input":"A","action":"Turbo in MANUAL; deploy gadget in AUTO; choose ending"},
-    {"input":"B","action":"Toggle self-drive; choose alternate ending"},
-    {"input":"SELECT","action":"Toggle handbrake / slide"},
-    {"input":"SELECT+B","action":"Toggle headlights"}
+    {"input": "UP / DOWN", "action": "Change lane"},
+    {"input": "RIGHT / LEFT", "action": "Accelerate / brake; in self-drive, choose the gadget"},
+    {"input": "A", "action": "Turbo; in self-drive, use the gadget; take the Egg"},
+    {"input": "B", "action": "Toggle self-drive; leave the Egg"},
+    {"input": "SELECT", "action": "Toggle the handbrake"},
+    {"input": "SELECT + B", "action": "Toggle the headlights"}
   ]
 }
